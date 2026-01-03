@@ -5,7 +5,7 @@
 **Version:** 1.0  
 **Status:** Active  
 **Date:** 2026-01-03  
-**Baseline Specification:** `specs/core/spec.md`
+**Baseline Specification:** `specs/spec.md`
 
 ---
 
@@ -97,12 +97,68 @@
 
 **Trade-offs:**
 - Requires explicit handler registration
-- **Benefit:** Simplicsrc/models.py`)
+- **Benefit:** Simplicity and maintainability for Phase I
+
+**Accepted:** Yes
+
+### ADR-004: String-Based Error Reporting
+
+**Decision:** Errors reported as exception messages with user-facing strings
+
+**Options Evaluated:**
+1. Exception hierarchies with codes
+2. String-based error messages ← **Selected**
+3. Result/Either types
+
+**Rationale:**
+- Simplicity for Phase I
+- Human-readable error messages
+- Command handlers return strings; errors as exceptions
+
+**Trade-offs:**
+- Less structured than error codes
+- **Benefit:** Simplicity and clarity for Phase I
+
+**Accepted:** Yes
+
+---
+
+## System Architecture
+
+### Layer Overview
+
+```
+┌─────────────────────────────────────────────┐
+│         Application Layer (app.py)          │
+│      REPL Loop + Console I/O                │
+└─────────────────────────────────────────────┘
+                       ↓
+┌─────────────────────────────────────────────┐
+│      Commands Layer (commands.py)           │
+│  Command Parsing + Business Logic           │
+└─────────────────────────────────────────────┘
+                       ↓
+┌─────────────────────────────────────────────┐
+│        Store Layer (store.py)               │
+│   In-Memory CRUD + ID Generation            │
+└─────────────────────────────────────────────┘
+                       ↓
+┌─────────────────────────────────────────────┐
+│       Models Layer (models.py)              │
+│   Task Data Structure                       │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## Layer Responsibilities
+
+### Layer 1: Models (`src/models.py`)
 
 **Responsibility:** Domain data structures (no I/O, no business logic)
 
 **Components:**
-- `Task` dataclass (replaces "Todo" for clarity):
+- `Task` dataclass:
   - `id: int | None` – Unique identifier (None until assigned by Store)
   - `title: str` – Non-empty task title
   - `description: str` – Optional task details
@@ -155,7 +211,71 @@
   - `cmd_add(args: list[str], store: TaskStore) -> str` – Create task
   - `cmd_list(args: list[str], store: TaskStore) -> str` – List tasks
   - `cmd_show(args: list[str], store: TaskStore) -> str` – Show task details
-  -API Contracts and Interfaces
+  - `cmd_update(args: list[str], store: TaskStore) -> str` – Modify task
+  - `cmd_delete(args: list[str], store: TaskStore) -> str` – Delete task
+  - `cmd_help(args: list[str], store: TaskStore) -> str` – Help information
+
+- `dispatch(command: str, args: list[str], store: TaskStore) -> str`
+  - Route commands to appropriate handler
+  - Raise ValueError for unknown command
+
+- `COMMAND_REGISTRY` dict
+  - Maps command names to handler functions
+  - Example: `{"add": cmd_add, "list": cmd_list, ...}`
+
+**Behavior:**
+- Parse arguments from list (command line split)
+- Handle flags and options (e.g., `--title`, `--status`)
+- Validate input before calling Store
+- Return formatted messages with ✓, ✗, or ℹ prefix
+- Raise exceptions on validation failure
+
+**Constraints:**
+- Type hints required for all functions
+- Docstrings required for all handlers
+- No direct console I/O (return strings only)
+- No global mutable state
+- Pure functions (same input → same output)
+
+---
+
+### Layer 4: Application (`src/app.py`)
+
+**Responsibility:** REPL loop, console I/O, and application lifecycle
+
+**Components:**
+- `run() -> None` function:
+  1. Display welcome message: "Welcome to Todo App!"
+  2. Display hint: "Type 'help' for available commands."
+  3. Enter REPL loop:
+     - Display prompt: `todo> `
+     - Read user input from stdin
+     - Parse: extract command and arguments
+     - Call `dispatch()` from commands module
+     - Display result message
+     - Continue loop
+  4. Exit on "quit" or "exit" command with goodbye message
+  5. Catch exceptions and display user-facing error messages
+
+- `__main__` entrypoint:
+  - Create TaskStore instance
+  - Call `run()`
+
+**Behavior:**
+- Deterministic output format
+- Graceful error recovery (re-prompt after error)
+- No crash on invalid input
+- Clean exit on quit/exit
+
+**Constraints:**
+- Type hints required
+- Docstrings required
+- No business logic (only I/O and dispatch)
+- All error handling in this layer
+
+---
+
+## API Contracts and Interfaces
 
 ### Store API (`src/store.py`)
 
@@ -219,56 +339,11 @@ def dispatch(command: str, args: list[str], store: TaskStore) -> str:
 **REPL error recovery:**
 - Catch all exceptions in app.py main loop
 - Display user-facing error message
-- Re-prompt user and continue (no crash
-- Type hints required for all functions
-- Docstrings required for all handlers
-- No direct console I/O (return strings only)
-- No global mutable state
-- Pure functions (same input → same output)
+- Re-prompt user and continue (no crash)
 
 ---
 
-### Layer 4: Application (`src/app.py`)
-
-**Responsibility:** REPL loop, console I/O, and application lifecycle
-
-**Components:**
-- `run() -> None` function:
-  1. Display welcome message: "Welcome to Todo App!"
-  2. Display hint: "Type 'help' for available commands."
-  3. Enter REPL loop:
-     - Display prompt: `todo> `
-     - Read user input from stdin
-     - Parse: extract command and arguments
-     - Call `dispatch()` from commands module
-     - Display result message
-     - Continue loop
-  4. Exit on "quit" or "exit" command with goodbye message
-  5. Catch exceptions and display user-facing error messages
-
-- `__main__` entrypoint:
-  - Create TaskStore instance
-  - Call `run()`
-
-**Behavior:**
-- Deterministic output format
-- Graceful error recovery (re-prompt after error)
-- No crash on invalid input
-- Clean exit on quit/exit
-
-**Constraints:**
-- Type hints required
-- Docstrings required
-- No business logic (only I/O and dispatch)
-- All error handling in this layer (`models.py`)
-**Responsibility:** Domain data structures
-- `Todo` dataclass: id, title, description, completed, created_at, completed_at
-- Immutable after creation (except update operations on Store)
-
-### Layer 2: Store (`store.py`)
-**Responsibility:** In-memory data management
-- `TodoStore` class: CRUD operations
-- Methods: `add(title, descrip Addressed
+## Non-Functional Requirements – How Addressed
 
 ### NFR1: In-Memory Storage
 - **Approach:** All tasks held in `TaskStore` instance (Python memory)
@@ -301,6 +376,8 @@ def dispatch(command: str, args: list[str], store: TaskStore) -> str:
 - **Error Handling:** Defensive programming; no unhandled exceptions escape to user
 - **Separation:** Business logic completely independent of I/O
 
+---
+
 ## Data Management
 
 ### Storage Strategy
@@ -317,7 +394,11 @@ def dispatch(command: str, args: list[str], store: TaskStore) -> str:
 ### Timestamps
 - `created_at` set automatically when task added
 - `completed_at` set when task marked complete
-- `Definition of Done (DoD)
+- Clear `completed_at` when task marked pending again
+
+---
+
+## Definition of Done (DoD)
 
 ### Layer 1: Models (`src/models.py`)
 - [ ] `Task` dataclass defined with all required fields
@@ -371,30 +452,8 @@ def dispatch(command: str, args: list[str], store: TaskStore) -> str:
 
 ---
 
-## References
+## Risk Analysis
 
-**Baseline Specification:** [specs/core/spec.md](../core/spec.md)  
-**Implementation Tasks:** [specs/core/tasks.md](../core/tasks.md)  
-**Constitution:** [specs/CONSTITUTION.md](../CONSTITUTION.md)  
-
----
-
-## Summary
-
-This plan establishes a strict 4-layer architecture enabling:
-1. **Clear separation of concerns** (Models → Store → Commands → App)
-2. **Independent testing** of each layer
-3. **Business logic reusability** (Phase II: web/API without changes)
-4. **Forward compatibility** with AI agents and future frameworks
-
-**All implementation tasks are generated from this plan and the baseline specification.**
-
----
-
-**Version History:**
-- 1.0 (2026-01-03): Initial active plan aligned with baseline spec
-
-**Status:** Active – Ready for implementation
 ### Risk 1: Command Parser Ambiguity
 **Scenario:** User types invalid command format  
 **Blast Radius:** User confusion, unclear error  
@@ -417,74 +476,30 @@ This plan establishes a strict 4-layer architecture enabling:
 **Scenario:** User deletes non-existent task  
 **Blast Radius:** User confusion  
 **Mitigation:** Always show error message: `✗ Task not found (ID: X)`
-- Max todos per session: Limited by memory only
-
-### Reliability
-- In-memory: No persistence, data lost on exit
-- Error recovery: REPL loop continues after command error
-
-### Security
-- Phase I: No authentication; not in scope
-
-## Data Management
-
-### Storage
-- `TodoStore` holds list of `Todo` objects
-- IDs auto-incremented per session
-- No persistence; data lost on exit
-
-### Initialization
-- Empty store on startup
-- No migration logic (Phase I)
-
-## Operational Readiness
-
-### Logging
-- Command execution logged to stderr (optional, Phase I)
-- Errors printed to stdout with clear message
-
-### Testing
-- Unit tests for Store (CRUD operations)
-- Integration tests for Command handlers
-- Acceptance tests for end-to-end flow
-
-## Risk Analysis
-
-### Risk 1: Command Parser Ambiguity
-**Blast Radius:** User confusion, command not recognized  
-**Mitigation:** Clear help text, explicit syntax, type validation
-
-### Risk 2: Concurrent Modifications
-**Blast Radius:** None (single-threaded, in-memory)  
-**Mitigation:** N/A
-
-### Risk 3: Large Data Sets (Memory)
-**Blast Radius:** Performance degradation  
-**Mitigation:** Phase I scope limits to test data; Phase II adds persistence
-
-## Evaluation and Validation
-
-### Definition of Done
-- [ ] All CRUD operations implemented and tested
-- [ ] Command parser handles all defined commands
-- [ ] Error messages are clear and actionable
-- [ ] Console output is parseable and human-readable
-- [ ] Help command works for all commands
-- [ ] Application exits cleanly
-
-### Testing Strategy
-- Unit tests: Store (add, get, list, update, delete, filters)
-- Integration tests: Command handlers (parsing, dispatch, output)
-- Acceptance tests: REPL loop (add → list → show → update → delete → exit)
-
-## Architectural Decision Records
-- ADR-001: Layered architecture for forward compatibility
-- ADR-002: In-memory store with class-based API
 
 ---
 
-**Next Steps:**
-1. Create detailed task specs (`specs/core/tasks.md`)
-2. Generate models, store, commands, app from specs
-3. Implement unit and integration tests
-4. Manual acceptance testing
+## References
+
+**Baseline Specification:** [specs/spec.md](spec.md)  
+**Implementation Tasks:** [specs/tasks.md](tasks.md)  
+**Constitution:** [specs/CONSTITUTION.md](CONSTITUTION.md)  
+
+---
+
+## Summary
+
+This plan establishes a strict 4-layer architecture enabling:
+1. **Clear separation of concerns** (Models → Store → Commands → App)
+2. **Independent testing** of each layer
+3. **Business logic reusability** (Phase II: web/API without changes)
+4. **Forward compatibility** with AI agents and future frameworks
+
+**All implementation tasks are generated from this plan and the baseline specification.**
+
+---
+
+**Version History:**
+- 1.0 (2026-01-03): Initial active plan aligned with baseline spec
+
+**Status:** Active – Ready for implementation

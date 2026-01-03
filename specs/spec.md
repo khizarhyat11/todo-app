@@ -353,8 +353,8 @@ Completed:   —
 
 - **External:** None (Python stdlib only)
 - **Internal:** Derived from this spec
-  - `specs/core/plan.md` — Architecture plan
-  - `specs/core/tasks.md` — Implementation tasks
+  - `specs/plan.md` — Architecture plan
+  - `specs/tasks.md` — Implementation tasks
   - `CONSTITUTION.md` — Project principles
 
 ---
@@ -362,8 +362,8 @@ Completed:   —
 ## Next Steps
 
 1. Review and approve this baseline specification
-2. Generate `specs/core/plan.md` from this specification
-3. Generate `specs/core/tasks.md` with testable implementation tasks
+2. Generate `specs/plan.md` from this specification
+3. Generate `specs/tasks.md` with testable implementation tasks
 4. Claude Code generates all implementation from tasks
 
 ---
@@ -371,6 +371,6 @@ Completed:   —
 ## References
 
 - **Constitution:** `specs/CONSTITUTION.md`
-- **Architecture Plan:** `specs/core/plan.md`
-- **Implementation Tasks:** `specs/core/tasks.md`
+- **Architecture Plan:** `specs/plan.md`
+- **Implementation Tasks:** `specs/tasks.md`
 - **README:** `README.md`

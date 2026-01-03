@@ -5,8 +5,8 @@
 **Version:** 1.0  
 **Status:** Active  
 **Date:** 2026-01-03  
-**Baseline Specification:** `specs/core/spec.md`  
-**Architecture Plan:** `specs/core/plan.md`  
+**Baseline Specification:** `specs/spec.md`  
+**Architecture Plan:** `specs/plan.md`  
 
 ---
 
@@ -503,11 +503,10 @@ Expected: All commands execute, output displayed, exit cleanly
 - **File:** `src/app.py` (new)
 - **Import:** `from src.store import TaskStore`
 - **Import:** `from src.commands import dispatch`
-- **Error handling:** Wrap dispatch() in try/except
 
 ---
 
-## Task 5: Create Package Structure and Entrypoint
+## Task 5: Create Package Structure
 
 **Feature:** core  
 **Layer:** Package  
@@ -516,205 +515,101 @@ Expected: All commands execute, output displayed, exit cleanly
 **Dependencies:** Task 4
 
 ### Description
-Set up Python package structure and entrypoint to run application.
+Create package structure files for proper Python module initialization and command-line execution.
 
 ### Acceptance Criteria
-- [ ] `src/__init__.py` exists (can be empty or import public API)
-- [ ] `src/__main__.py` exists
-- [ ] `src/__main__.py` imports and calls `run()` from app.py
-- [ ] Application runs: `python -m src`
-- [ ] Welcome message displays on startup
-- [ ] REPL loop responds to input
-
-### Code Structure
-
-**src/__init__.py:**
-```python
-"""Todo App - Phase I In-Memory Console Application"""
-# Can be empty or expose public API
-```
-
-**src/__main__.py:**
-```python
-"""Application entrypoint"""
-# Import run from app
-# Call run()
-```
-
-### Test Case
-
-**Test 5.1: Run application**
-```bash
-$ python -m src
-Welcome to Todo App!
-Type 'help' for available commands.
-todo> help
-[help output]
-todo> quit
-Goodbye!
-```
+- [ ] `src/__init__.py` exists with package docstring
+- [ ] `src/__init__.py` imports `Task` and `TaskStore` for public API
+- [ ] `src/__main__.py` exists and imports `run()` from app module
+- [ ] `src/__main__.py` calls `run()` function
+- [ ] Application executable via: `python -m src`
+- [ ] Type hints present where applicable
+- [ ] Docstrings on all public functions
 
 ### Code References
-- **File:** `src/__init__.py` (new)
-- **File:** `src/__main__.py` (new)
+- **Files:** `src/__init__.py` (new), `src/__main__.py` (new)
+- **Entry point:** `python -m src` should start the REPL
 
 ---
 
-## Task 6: Unit Tests for TaskStore
+## Task 6: Implement Unit Tests for Store
 
 **Feature:** core  
-**Layer:** Tests  
+**Layer:** Testing  
 **File:** `tests/test_store.py`  
 **Status:** Not Started  
 **Dependencies:** Task 2
 
 ### Description
-Comprehensive unit tests for `TaskStore` class covering all methods, edge cases, and error conditions.
+Implement comprehensive unit tests for `TaskStore` class covering all CRUD operations, filtering, and edge cases.
 
 ### Acceptance Criteria
-- [ ] All Store methods tested (add, get, list, update, delete)
-- [ ] All filter options tested (all, pending, completed)
-- [ ] Edge cases covered (empty store, invalid IDs, empty titles)
-- [ ] Error cases covered (ValueError on invalid input, KeyError on update non-existent)
-- [ ] At least 20 test cases
-- [ ] At least 95% code coverage of store.py
-- [ ] Tests are deterministic and isolated
-- [ ] File is runnable: `pytest tests/test_store.py -v`
-- [ ] All tests pass
-
-### Test Framework
-- Use `pytest`
-- Use fixtures for store setup
-- Use parametrized tests where applicable
+- [ ] All test cases from Task 2 implemented
+- [ ] Test file has pytest fixtures for store initialization
+- [ ] All tests pass: `pytest tests/test_store.py -v`
+- [ ] Code coverage 100% for store.py
+- [ ] Clear test names describing expected behavior
+- [ ] Tests are isolated and independent
 
 ### Code References
 - **File:** `tests/test_store.py` (new)
 - **Framework:** pytest
-- **Import:** `from src.store import TaskStore`
-- **Import:** `from src.models import Task`
+- **Fixtures:** TaskStore instance(s)
 
 ---
 
-## Task 7: Integration Tests for Commands
+## Task 7: Implement Integration Tests for Commands
 
 **Feature:** core  
-**Layer:** Tests  
+**Layer:** Testing  
 **File:** `tests/test_commands.py`  
 **Status:** Not Started  
 **Dependencies:** Task 3
 
 ### Description
-Comprehensive integration tests for command handlers, covering argument parsing, dispatch, and output formatting.
+Implement comprehensive integration tests for command handlers covering argument parsing, output formatting, and error conditions.
 
 ### Acceptance Criteria
-- [ ] All command handlers tested (add, list, show, update, delete, help)
-- [ ] Valid argument combinations tested
-- [ ] Invalid argument combinations tested
-- [ ] Output format verified (✓, ✗, ℹ prefixes)
-- [ ] Error messages verified
-- [ ] Dispatch logic tested
-- [ ] At least 25 test cases
-- [ ] At least 95% code coverage of commands.py
-- [ ] Tests are deterministic and isolated
-- [ ] File is runnable: `pytest tests/test_commands.py -v`
-- [ ] All tests pass
+- [ ] All test cases from Task 3 implemented
+- [ ] Test file has pytest fixtures for store + command testing
+- [ ] All tests pass: `pytest tests/test_commands.py -v`
+- [ ] Code coverage 100% for commands.py
+- [ ] Tests verify output message format (✓/✗/ℹ prefixes)
+- [ ] Tests verify table formatting for list command
+- [ ] Tests verify detail formatting for show command
+- [ ] Error scenarios thoroughly tested
 
 ### Code References
 - **File:** `tests/test_commands.py` (new)
 - **Framework:** pytest
-- **Import:** `from src.commands import dispatch, cmd_add, cmd_list, ...`
-- **Import:** `from src.store import TaskStore`
+- **Fixtures:** TaskStore instance(s)
 
 ---
 
-## Task 8: Acceptance Tests (End-to-End)
+## Task 8: Implement Acceptance Tests for Full Workflow
 
 **Feature:** core  
-**Layer:** Tests  
+**Layer:** Testing  
 **File:** `tests/test_acceptance.py`  
 **Status:** Not Started  
 **Dependencies:** Task 4
 
 ### Description
-End-to-end acceptance tests verifying full workflow from startup to exit.
+Implement end-to-end acceptance tests simulating real user workflows through the application.
 
 ### Acceptance Criteria
-- [ ] Full workflow tested: add → list → show → update → delete → exit
-- [ ] Error scenarios tested (invalid command, missing args)
-- [ ] Output is parseable and human-readable
-- [ ] At least 5 comprehensive test cases
-- [ ] All tests pass
-- [ ] File is runnable: `pytest tests/test_acceptance.py -v`
+- [ ] Full workflow tests (add → list → show → update → delete → quit)
+- [ ] Error recovery tests (invalid input handled gracefully)
+- [ ] Complex workflow tests (multiple tasks with filtering)
+- [ ] All tests pass: `pytest tests/test_acceptance.py -v`
+- [ ] Test coverage includes all user interactions
+- [ ] Tests validate console output format and behavior
 
 ### Code References
 - **File:** `tests/test_acceptance.py` (new)
 - **Framework:** pytest
-- **Approach:** May use subprocess to capture app output or mock stdin/stdout
+- **Approach:** Capture REPL output and verify behavior
 
 ---
 
-## Summary Table
-
-| Task | Module | Layer | Dependencies | Est. Lines |
-|------|--------|-------|--------------|-----------|
-| 1 | models.py | Models | None | ~20 |
-| 2 | store.py | Store | T1 | ~100 |
-| 3 | commands.py | Commands | T1, T2 | ~200 |
-| 4 | app.py | App | T1, T2, T3 | ~80 |
-| 5 | __init__.py, __main__.py | Package | T4 | ~20 |
-| 6 | test_store.py | Tests | T2 | ~150 |
-| 7 | test_commands.py | Tests | T3 | ~200 |
-| 8 | test_acceptance.py | Tests | T4 | ~100 |
-
-**Total Estimated Code:** ~870 lines (excluding tests)  
-**Total Estimated Test Code:** ~450 lines
-
----
-
-## Execution Order
-
-**Strict sequence** (dependencies enforced):
-
-1. ✅ Task 1: Models
-2. ✅ Task 2: Store (depends on T1)
-3. ✅ Task 3: Commands (depends on T1, T2)
-4. ✅ Task 4: App (depends on T1, T2, T3)
-5. ✅ Task 5: Package (depends on T4)
-6. ⏳ Task 6: Unit Tests (depends on T2)
-7. ⏳ Task 7: Integration Tests (depends on T3)
-8. ⏳ Task 8: Acceptance Tests (depends on T4)
-
-**Parallel execution:** Tasks 6, 7, 8 can run in parallel after their dependencies are met.
-
----
-
-## Validation Checklist
-
-After all tasks complete:
-
-- [ ] All code generated from this spec (no manual edits)
-- [ ] All tests pass: `pytest tests/ -v`
-- [ ] Application runs: `python -m src`
-- [ ] All commands execute correctly
-- [ ] Help system works
-- [ ] Error handling is graceful (no crashes)
-- [ ] Console output matches baseline spec
-- [ ] Code coverage >95% for all modules
-- [ ] All type hints present
-- [ ] All docstrings present
-- [ ] No external dependencies used
-
----
-
-## References
-
-**Baseline Specification:** [specs/core/spec.md](../core/spec.md)  
-**Architecture Plan:** [specs/core/plan.md](../core/plan.md)  
-**Constitution:** [specs/CONSTITUTION.md](../CONSTITUTION.md)  
-
----
-
-**Version History:**
-- 1.0 (2026-01-03): Initial active task specification
-
-**Status:** Active – Ready for implementation
+**Final Status:** Ready for implementation in order (Task 1 → Task 2 → ... → Task 8)
