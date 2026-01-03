@@ -1,4 +1,4 @@
-# Todo App – Phase I Constitution
+# Todo App – Console Application
 
 **Date:** 2026-01-03  
 **Version:** 1.0  
