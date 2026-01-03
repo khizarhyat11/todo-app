@@ -1,19 +1,6 @@
 {
   "buildCommand": "pip install -r requirements.txt",
-  "functions": {
-    "api.py": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api.py"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api.py"
-    }
-  ]
+  "python": {
+    "version": "3.11"
+  }
 }

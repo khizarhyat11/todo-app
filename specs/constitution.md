@@ -1,7 +1,7 @@
 # todo app – console application
 
 **date:** 2026-01-03  
-**version:** 1.0  
+**version:** 1.0  J
 **status:** active  
 
 ## purpose
