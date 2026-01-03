@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>todo app</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 0.95em;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .input-section input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-section button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        .input-section button:hover {
+            background: #5568d3;
+        }
+
+        .input-section button:active {
+            transform: scale(0.98);
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .task-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            border-left-color: #4caf50;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-text {
+            font-weight: 500;
+            color: #333;
+            word-break: break-word;
+            margin-bottom: 4px;
+        }
+
+        .task-description {
+            font-size: 0.9em;
+            color: #888;
+            word-break: break-word;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .task-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #ff3838;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .error {
+            padding: 15px;
+            background: #ffebee;
+            border: 2px solid #ff4757;
+            border-radius: 6px;
+            color: #d32f2f;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            padding: 15px;
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 6px;
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+
+        .api-status {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .api-status.connected {
+            color: #4caf50;
+        }
+
+        .api-status.disconnected {
+            color: #ff4757;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .task-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✓ todo</h1>
+            <p>simple, clean, and productive</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="success" class="success" style="display: none;"></div>
+
+        <div class="input-section">
+            <input 
+                type="text" 
+                id="taskInput" 
+                placeholder="add a new task..."
+                autocomplete="off"
+            >
+            <button onclick="addTask()">add</button>
+        </div>
+
+        <div class="filter-section">
+            <button class="filter-btn active" onclick="filterTasks('all')">all</button>
+            <button class="filter-btn" onclick="filterTasks('pending')">pending</button>
+            <button class="filter-btn" onclick="filterTasks('completed')">completed</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            loading tasks...
+        </div>
+
+        <div class="tasks-list" id="tasksList"></div>
+
+        <div class="empty-state" id="emptyState">
+            <div style="font-size: 3em; margin-bottom: 10px;">📝</div>
+            <p>no tasks yet. start by adding one!</p>
+        </div>
+
+        <div class="api-status" id="apiStatus">checking api...</div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let currentFilter = 'all';
+
+        async function loadTasks() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch(`${API_URL}/tasks?filter=${currentFilter}`);
+                
+                if (!response.ok) throw new Error('Failed to load tasks');
+                
+                const tasks = await response.json();
+                renderTasks(tasks);
+                updateApiStatus(true);
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                showError('Failed to load tasks. Check your connection.');
+                updateApiStatus(false);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function addTask() {
+            const input = document.getElementById('taskInput');
+            const title = input.value.trim();
+
+            if (!title) {
+                showError('Please enter a task title');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description: '' })
+                });
+
+                if (!response.ok) throw new Error('Failed to add task');
+
+                input.value = '';
+                showSuccess('Task added!');
+                loadTasks();
+            } catch (error) {
+                console.error('Error adding task:', error);
+                showError('Failed to add task');
+            }
+        }
+
+        async function toggleTask(id, completed) {
+            try {
+                const response = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed: !completed })
+                });
+
+                if (!response.ok) throw new Error('Failed to update task');
+
+                loadTasks();
+            } catch (error) {
+                console.error('Error updating task:', error);
+                showError('Failed to update task');
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('delete this task?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/tasks/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('Failed to delete task');
+
+                showSuccess('Task deleted!');
+                loadTasks();
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showError('Failed to delete task');
+            }
+        }
+
+        function renderTasks(tasks) {
+            const tasksList = document.getElementById('tasksList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (tasks.length === 0) {
+                tasksList.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tasksList.innerHTML = tasks.map(task => `
+                <div class="task-item ${task.completed ? 'completed' : ''}">
+                    <input 
+                        type="checkbox" 
+                        class="task-checkbox"
+                        ${task.completed ? 'checked' : ''}
+                        onchange="toggleTask(${task.id}, ${task.completed})"
+                    >
+                    <div class="task-content">
+                        <div class="task-text">${escapeHtml(task.title)}</div>
+                        ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+                    </div>
+                    <div class="task-actions">
+                        <button class="task-btn btn-delete" onclick="deleteTask(${task.id})">delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterTasks(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            loadTasks();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 4000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function updateApiStatus(connected) {
+            const statusDiv = document.getElementById('apiStatus');
+            if (connected) {
+                statusDiv.textContent = '✓ api connected';
+                statusDiv.classList.add('connected');
+                statusDiv.classList.remove('disconnected');
+            } else {
+                statusDiv.textContent = '✗ api disconnected';
+                statusDiv.classList.add('disconnected');
+                statusDiv.classList.remove('connected');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // allow enter key to add task
+        document.getElementById('taskInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        // load tasks on page load
+        loadTasks();
+    </script>
+</body>
+</html>
